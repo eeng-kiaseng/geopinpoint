@@ -1,17 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Google Sheets Map App</title>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geopinpoint - Live Camera Network</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; padding: 0; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         #map { height: 100vh; width: 100vw; }
+
+        /* Professional Floating Header Card */
+        .brand-card {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 320px;
+        }
+        .brand-card img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .brand-info h1 {
+            font-size: 15px;
+            margin: 0 0 2px 0;
+            color: #1a1a1a;
+        }
+        .brand-info p {
+            font-size: 12px;
+            margin: 0;
+            color: #666;
+        }
+
+        /* Custom Popup Styling */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 5px;
+        }
+        .popup-content h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #222;
+        }
+        .copy-btn {
+            background: #0066ff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #0052cc;
+        }
+        .copy-btn.copied {
+            background: #10b981;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Professional Floating Brand Card -->
+    <div class="brand-card">
+        <!-- PASTE YOUR GOOGLE DRIVE LOGO DIRECT IMAGE LINK BELOW -->
+        <img src="YOUR_GOOGLE_DRIVE_LOGO_DIRECT_LINK_HERE" alt="Logo">
+        <div class="brand-info">
+            <h1>Sihanoukville Cameras</h1>
+            <p>Live Street Surveillance Network</p>
+        </div>
+    </div>
 
     <div id="map"></div>
 
@@ -21,19 +92,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // Initialize map (default coordinates set to a general view)
-        const map = L.map('map').setView([11.5564, 104.9282], 13);
+        // 1. Initialize map centered on Sihanoukville, Cambodia (Lat: 10.6253, Lng: 103.5222)
+        const map = L.map('map').setView([10.6253, 103.5222], 13);
 
-        // Add OpenStreetMap tile layer
+        // Add clean OpenStreetMap tiles
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK BELOW INSIDE THE QUOTES
+        // 2. Create a custom Camera Icon with a nice design
+        const cameraIcon = L.divIcon({
+            className: 'custom-camera-pin',
+            html: `
+                <div style="
+                    background: #2563eb;
+                    color: white;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 10px rgba(37,99,235,0.4);
+                    border: 2px solid white;
+                    font-size: 16px;
+                ">
+                    📹
+                </div>
+            `,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -18]
+        });
+
+        // 3. PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK BELOW
         const csvUrl = 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE';
 
-        // Fetch CSV and create markers
+        // 4. Fetch CSV and populate markers
         Papa.parse(csvUrl, {
             download: true,
             header: true,
@@ -45,14 +141,38 @@
                     const lng = parseFloat(row.Longitude);
                     const name = row.Name;
 
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        L.marker([lat, lng])
+                    if (!isNaN(lat) && !isNaN(lng) && name) {
+                        // Create popup HTML with click-to-copy feature
+                        const popupHtml = `
+                            <div class="popup-content">
+                                <h3>${name}</h3>
+                                <button class="copy-btn" onclick="copyCameraName('${name.replace(/'/g, "\\'")}', this)">
+                                    Copy Camera Name
+                                </button>
+                            </div>
+                        `;
+
+                        L.marker([lat, lng], { icon: cameraIcon })
                           .addTo(map)
-                          .bindPopup(`<b>${name}</b>`);
+                          .bindPopup(popupHtml);
                     }
                 });
             }
         });
+
+        // Function to copy camera name to clipboard
+        function copyCameraName(name, buttonElement) {
+            navigator.clipboard.writeText(name).then(() => {
+                buttonElement.textContent = 'Copied!';
+                buttonElement.classList.add('copied');
+                setTimeout(() => {
+                    buttonElement.textContent = 'Copy Camera Name';
+                    buttonElement.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
     </script>
 </body>
 </html>
