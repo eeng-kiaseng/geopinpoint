@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Sheets Map App</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100vw; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- PapaParse to read CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        // Initialize map (default coordinates set to a general view)
+        const map = L.map('map').setView([11.5564, 104.9282], 13);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK BELOW INSIDE THE QUOTES
+        const csvUrl = 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE';
+
+        // Fetch CSV and create markers
+        Papa.parse(csvUrl, {
+            download: true,
+            header: true,
+            complete: function(results) {
+                const data = results.data;
+                
+                data.forEach(row => {
+                    const lat = parseFloat(row.Latitude);
+                    const lng = parseFloat(row.Longitude);
+                    const name = row.Name;
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        L.marker([lat, lng])
+                          .addTo(map)
+                          .bindPopup(`<b>${name}</b>`);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
