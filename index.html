@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geopinpoint - Live Camera Network</title>
+    <title>Geopinpoint</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -48,12 +48,17 @@
             padding: 5px;
         }
         .popup-content h3 {
-            margin: 0 0 8px 0;
+            margin: 0 0 4px 0;
             font-size: 14px;
             color: #222;
         }
+        .popup-content p {
+            margin: 0 0 10px 0;
+            font-size: 12px;
+            color: #666;
+        }
         .copy-btn {
-            background: #0066ff;
+            background: #2563eb;
             color: white;
             border: none;
             padding: 6px 12px;
@@ -65,7 +70,7 @@
             transition: background 0.2s;
         }
         .copy-btn:hover {
-            background: #0052cc;
+            background: #1d4ed8;
         }
         .copy-btn.copied {
             background: #10b981;
@@ -76,11 +81,11 @@
 
     <!-- Professional Floating Brand Card -->
     <div class="brand-card">
-        <!-- PASTE YOUR GOOGLE DRIVE LOGO DIRECT IMAGE LINK BELOW -->
-        <img src="https://drive.google.com/file/d/1EYN3T9OwE5S78JaRbaIA4RLjivxuFYKk/view?usp=drive_link" alt="Logo">
+        <!-- Fixed Google Drive Direct Image Link -->
+        <img src="https://lh3.googleusercontent.com/d/1EYN3T9OwE5S78JaRbaIA4RLjivxuFYKk" alt="Logo">
         <div class="brand-info">
-            <h1>Sihanoukville Cameras</h1>
-            <p>Live Street Surveillance Network</p>
+            <h1>Geopinpoint</h1>
+            <p>Sihanoukville Cameras</p>
         </div>
     </div>
 
@@ -92,7 +97,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script>
-        // 1. Initialize map centered on Sihanoukville, Cambodia (Lat: 10.6253, Lng: 103.5222)
+        // 1. Initialize map centered on Sihanoukville, Cambodia
         const map = L.map('map').setView([10.6253, 103.5222], 13);
 
         // Add clean OpenStreetMap tiles
@@ -101,7 +106,7 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // 2. Create a custom Camera Icon with a nice design
+        // 2. Create custom Camera Icon
         const cameraIcon = L.divIcon({
             className: 'custom-camera-pin',
             html: `
@@ -126,8 +131,8 @@
             popupAnchor: [0, -18]
         });
 
-        // 3. PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK BELOW
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMj1c5zdkgzq41hD5QucLDxB6m_Ju_pZmuQW_8M7YZQSazRxB29g_k-7v29YnRJlrbq2GBFQebM4AG/pubhtml';
+        // 3. Your Published Google Sheet CSV Link
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMj1c5zdkgzq41hD5QucLDxB6m_Ju_pZmuQW_8M7YZQSazRxB29g_k-7v29YnRJlrbq2GBFQebM4AG/pub?output=csv';
 
         // 4. Fetch CSV and populate markers
         Papa.parse(csvUrl, {
@@ -140,12 +145,13 @@
                     const lat = parseFloat(row.Latitude);
                     const lng = parseFloat(row.Longitude);
                     const name = row.Name;
+                    const address = row['Address Name'] || '';
 
                     if (!isNaN(lat) && !isNaN(lng) && name) {
-                        // Create popup HTML with click-to-copy feature
                         const popupHtml = `
                             <div class="popup-content">
                                 <h3>${name}</h3>
+                                <p>${address}</p>
                                 <button class="copy-btn" onclick="copyCameraName('${name.replace(/'/g, "\\'")}', this)">
                                     Copy Camera Name
                                 </button>
