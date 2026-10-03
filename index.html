@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoPinPoint</title>
-    <link rel="icon" type="image/jpeg" href="https://lh3.googleusercontent.com/d/1EYN3T9OwE5S78JaRbaIA4RLjivxuFYKk">
+    <!-- Fixed favicon with CDN proxy for Safari compatibility -->
+    <link rel="icon" type="image/jpeg" href="https://images.weserv.nl/?url=lh3.googleusercontent.com/d/1EYN3T9OwE5S78JaRbaIA4RLjivxuFYKk">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -82,8 +83,8 @@
 
     <!-- Professional Floating Brand Card -->
     <div class="brand-card">
-        <!-- Fixed Google Drive Direct Image Link -->
-        <img src="https://lh3.googleusercontent.com/d/1EYN3T9OwE5S78JaRbaIA4RLjivxuFYKk" alt="Logo">
+        <!-- Fixed image link with CDN proxy for Safari compatibility -->
+        <img src="https://images.weserv.nl/?url=lh3.googleusercontent.com/d/1EYN3T9OwE5S78JaRbaIA4RLjivxuFYKk" alt="Logo">
         <div class="brand-info">
             <h1>GeoPinPoint</h1>
             <p>Sihanoukville Cameras</p>
@@ -132,23 +133,24 @@
             popupAnchor: [0, -18]
         });
 
-        // 3. Your Published Google Sheet CSV Link
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMj1c5zdkgzq41hD5QucLDxB6m_Ju_pZmuQW_8M7YZQSazRxB29g_k-7v29YnRJlrbq2GBFQebM4AG/pub?output=csv';
+        // 3. Your Published Google Sheet CSV Link with cache-buster
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQMj1c5zdkgzq41hD5QucLDxB6m_Ju_pZmuQW_8M7YZQSazRxB29g_k-7v29YnRJlrbq2GBFQebM4AG/pub?output=csv&t=' + new Date().getTime();
 
-        // 4. Fetch CSV and populate markers
+        // 4. Fetch CSV and populate markers (looping all rows securely)
         Papa.parse(csvUrl, {
             download: true,
             header: true,
+            skipEmptyLines: true,
             complete: function(results) {
                 const data = results.data;
                 
                 data.forEach(row => {
                     const lat = parseFloat(row.Latitude);
                     const lng = parseFloat(row.Longitude);
-                    const name = row.Name;
-                    const address = row['Address Name'] || '';
+                    const name = row.Name ? row.Name.trim() : '';
+                    const address = row['Address Name'] ? row['Address Name'].trim() : '';
 
-                    if (!isNaN(lat) && !isNaN(lng) && name) {
+                    if (!isNaN(lat) && !isNaN(lng) && name !== '') {
                         const popupHtml = `
                             <div class="popup-content">
                                 <h3>${name}</h3>
@@ -164,6 +166,9 @@
                           .bindPopup(popupHtml);
                     }
                 });
+            },
+            error: function(err) {
+                console.error("Error loading CSV:", err);
             }
         });
 
