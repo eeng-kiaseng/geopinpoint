@@ -95,7 +95,7 @@
             margin-top: 12px;
         }
 
-        /* Professional Floating Header Card */
+        /* Professional Floating Header Card (Desktop default) */
         .brand-card {
             position: absolute;
             top: 11px;
@@ -109,7 +109,26 @@
             flex-direction: column;
             gap: 10px;
             width: 300px;
+            box-sizing: border-box;
         }
+
+        /* Mobile Adjustments (Screen width <= 768px) */
+        @media (max-width: 768px) {
+            /* Responsive Search/Brand Card Layout */
+            .brand-card {
+                top: 20px;
+                left: 20px;
+                right: 20px;
+                width: auto;
+                max-width: none;
+            }
+
+            /* Hide Leaflet Zoom Controls on Mobile */
+            .leaflet-control-zoom {
+                display: none !important;
+            }
+        }
+
         .brand-header {
             display: flex;
             align-items: center;
@@ -310,8 +329,12 @@
         }
 
 
-        // --- 2. Initialize Map ---
-        const map = L.map('map').setView([10.6253, 103.5222], 13);
+        // --- 2. Initialize Map (With Mobile Detection) ---
+        const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+        const map = L.map('map', {
+            zoomControl: !isMobile // Programmatically disable zoom control if mobile
+        }).setView([10.6253, 103.5222], 13);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -447,16 +470,22 @@
 
         // Copy Camera Name Function
         function copyCameraName(name, buttonElement) {
-            navigator.clipboard.writeText(name).then(() => {
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = name;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
                 buttonElement.textContent = 'Copied!';
                 buttonElement.classList.add('copied');
                 setTimeout(() => {
                     buttonElement.textContent = 'Copy Camera Name';
                     buttonElement.classList.remove('copied');
                 }, 2000);
-            }).catch(err => {
+            } catch (err) {
                 console.error('Failed to copy text: ', err);
-            });
+            }
+            document.body.removeChild(tempTextArea);
         }
     </script>
 </body>
