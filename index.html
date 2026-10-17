@@ -17,8 +17,9 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
-        #map { height: 100vh; width: 100vw; }
+        #map { height: 100vh; width: 100vw; z-index: 1; }
 
         /* Solid White PIN Screen Overlay */
         .pin-screen {
@@ -46,6 +47,8 @@
             border-radius: 20px;
             text-align: center;
             width: 280px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: transform 0.1s ease;
         }
         .pin-card img {
             width: 48px;
@@ -92,14 +95,15 @@
             color: #ef4444;
             font-size: 12px;
             min-height: 16px;
-            margin-top: 12px;
+            margin-top: 8px;
         }
 
-        /* Professional Floating Header Card (Desktop default) */
+        /* Professional Floating Header Card */
         .brand-card {
             position: absolute;
-            top: 11px;
-            left: 48px;
+            top: 20px;
+            left: 20px;
+            right: 20px;
             z-index: 1000;
             background: white;
             padding: 12px 18px;
@@ -108,29 +112,15 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            width: 300px;
-            box-sizing: border-box;
+            width: auto;
+            max-width: none;
         }
-
-        /* Mobile Adjustments (Screen width <= 768px) */
-        @media (max-width: 768px) {
-            /* Responsive Search/Brand Card Layout */
+        @media (min-width: 769px) {
             .brand-card {
-                top: 20px;
-                left: 20px;
-                right: 20px;
-                width: auto;
-                max-width: none;
-            }
-
-            /* Prevent iOS auto-zoom on input focus by using at least 16px font size */
-            .search-input {
-                font-size: 16px !important;
-            }
-
-            /* Hide Leaflet Zoom Controls on Mobile */
-            .leaflet-control-zoom {
-                display: none !important;
+                top: 11px;
+                left: 48px;
+                right: auto;
+                width: 320px;
             }
         }
 
@@ -154,6 +144,39 @@
             font-size: 12px;
             margin: 0;
             color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Animated Live Green Indicator */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-green 1.8s infinite;
+        }
+        .live-text {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         /* Search Box Styling */
@@ -164,12 +187,17 @@
         .search-input {
             width: 100%;
             padding: 8px 12px;
-            font-size: 13px;
+            font-size: 16px; /* Prevents auto-zoom on mobile iOS Safari */
             border: 1px solid #d1d5db;
             border-radius: 8px;
             outline: none;
             box-sizing: border-box;
             transition: border-color 0.2s;
+        }
+        @media (min-width: 769px) {
+            .search-input {
+                font-size: 13px;
+            }
         }
         .search-input:focus {
             border-color: #2563eb;
@@ -210,6 +238,13 @@
         .search-item-sub {
             font-size: 11px;
             color: #6b7280;
+        }
+
+        /* Hide Leaflet zoom controls on Mobile */
+        @media (max-width: 768px) {
+            .leaflet-control-zoom {
+                display: none !important;
+            }
         }
 
         /* Custom Popup Styling */
@@ -274,7 +309,10 @@
             <img src="Police-Logo.png" alt="Police Logo">
             <div class="brand-info">
                 <h1>GeoPinPoint</h1>
-                <p>Sihanoukville Cameras</p>
+                <p id="cameraSubtext">
+                    <span class="live-dot"></span>
+                    <span class="live-text">0 Cameras Live</span>
+                </p>
             </div>
         </div>
 
@@ -325,6 +363,7 @@
                     document.body.style.overflow = 'auto';
                 } else {
                     pinError.textContent = 'Incorrect PIN. Try again.';
+                    shakeCard();
                     pinInputs.forEach(i => i.value = '');
                     pinInputs[0].focus();
                 }
@@ -333,12 +372,19 @@
             }
         }
 
+        function shakeCard() {
+            const card = document.querySelector('.pin-card');
+            card.style.transform = 'translateX(10px)';
+            setTimeout(() => card.style.transform = 'translateX(-10px)', 100);
+            setTimeout(() => card.style.transform = 'translateX(10px)', 200);
+            setTimeout(() => card.style.transform = 'translateX(0)', 300);
+        }
 
-        // --- 2. Initialize Map (With Mobile Detection) ---
-        const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
 
+        // --- 2. Initialize Map ---
+        const isMobile = window.innerWidth <= 768;
         const map = L.map('map', {
-            zoomControl: !isMobile // Programmatically disable zoom control if mobile
+            zoomControl: !isMobile // Hide default zoom controls on mobile devices
         }).setView([10.6253, 103.5222], 13);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -383,6 +429,7 @@
             skipEmptyLines: true,
             complete: function(results) {
                 const data = results.data;
+                let count = 0;
                 
                 data.forEach(row => {
                     const lat = parseFloat(row.Latitude);
@@ -391,6 +438,7 @@
                     const address = row['Address Name'] ? row['Address Name'].trim() : '';
 
                     if (!isNaN(lat) && !isNaN(lng) && name !== '') {
+                        count++;
                         const popupHtml = `
                             <div class="popup-content">
                                 <h3>${name}</h3>
@@ -415,6 +463,15 @@
                         });
                     }
                 });
+
+                // Dynamically update total camera count with live animation
+                const cameraSubtext = document.getElementById('cameraSubtext');
+                if (cameraSubtext) {
+                    cameraSubtext.innerHTML = `
+                        <span class="live-dot"></span>
+                        <span class="live-text">${count} ${count === 1 ? 'Camera' : 'Cameras'} Live</span>
+                    `;
+                }
             },
             error: function(err) {
                 console.error("Error loading CSV:", err);
@@ -475,22 +532,16 @@
 
         // Copy Camera Name Function
         function copyCameraName(name, buttonElement) {
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = name;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            try {
-                document.execCommand('copy');
+            navigator.clipboard.writeText(name).then(() => {
                 buttonElement.textContent = 'Copied!';
                 buttonElement.classList.add('copied');
                 setTimeout(() => {
                     buttonElement.textContent = 'Copy Camera Name';
                     buttonElement.classList.remove('copied');
                 }, 2000);
-            } catch (err) {
+            }).catch(err => {
                 console.error('Failed to copy text: ', err);
-            }
-            document.body.removeChild(tempTextArea);
+            });
         }
     </script>
 </body>
