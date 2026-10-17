@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GeoPinPoint</title>
     
     <!-- Favicon -->
@@ -121,6 +121,11 @@
                 right: 20px;
                 width: auto;
                 max-width: none;
+            }
+
+            /* Prevent iOS auto-zoom on input focus by using at least 16px font size */
+            .search-input {
+                font-size: 16px !important;
             }
 
             /* Hide Leaflet Zoom Controls on Mobile */
